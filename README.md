@@ -8,4 +8,4 @@ pod 'JQWebView', '~> 0.0.1'
 搜索不到，可先执行如下命令行后重试：<br>
 pod repo update<br>
 <br>
-<img src="https://raw.githubusercontent.com/Metoos/JQWebView/master/screenshots/screenshots.jpg" width="60%" alt=""/><img src="https://raw.githubusercontent.com/Metoos/JQWebView/master/screenshots/screenshots1.jpg" width="60%" alt=""/>
+<img src="https://raw.githubusercontent.com/Metoos/JQWebView/master/screenshots/screenshots.jpg" width="40%" alt=""/><img src="https://raw.githubusercontent.com/Metoos/JQWebView/master/screenshots/screenshots1.jpg" width="40%" alt=""/>
