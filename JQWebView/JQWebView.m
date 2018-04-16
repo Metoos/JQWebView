@@ -89,11 +89,7 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
             
             [self addSubview:self.uiWebView];
         }
-        
-        
-        
-        
-        
+
         self.progressView = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleDefault];
         [self.progressView setFrame:CGRectMake(0, (([[UIApplication sharedApplication] statusBarFrame].size.height)>=44)?88.0f:64.0f, self.frame.size.width, self.progressView.frame.size.height)];
         [self setTrackTintColor:[UIColor colorWithWhite:1.0f alpha:0.0f]];
@@ -275,8 +271,7 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
             
             
             //back delegate
-            [self.delegate JQWebView:self shouldStartLoadWithURL:request.URL];
-            return YES;
+          return [self.delegate JQWebView:self shouldStartLoadWithURL:request.URL];
         }
         else {
             [self launchExternalAppWithURL:request.URL];
@@ -456,7 +451,15 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
                 decisionHandler(WKNavigationActionPolicyCancel);
                 return;
             }
-            [self callback_webViewShouldStartLoadWithRequest:navigationAction.request navigationType:navigationAction.navigationType];
+            BOOL decision = [self callback_webViewShouldStartLoadWithRequest:navigationAction.request navigationType:navigationAction.navigationType];
+            if (decision) {
+                decisionHandler(WKNavigationActionPolicyAllow);
+                return;
+            } else
+            {
+                decisionHandler(WKNavigationActionPolicyCancel);
+                return;
+            }
             
         }
         else if([[UIApplication sharedApplication] canOpenURL:URL]) {
@@ -490,8 +493,8 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 -(BOOL)callback_webViewShouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(NSInteger)navigationType
 {
     //back delegate
-    [self.delegate JQWebView:self shouldStartLoadWithURL:request.URL];
-    return YES;
+    return [self.delegate JQWebView:self shouldStartLoadWithURL:request.URL];
+
 }
 
 

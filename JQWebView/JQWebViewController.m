@@ -144,9 +144,9 @@
 {
     
 }
-- (void)JQWebView:(JQWebView *)webview shouldStartLoadWithURL:(NSURL *)URL
+- (BOOL)JQWebView:(JQWebView *)webview shouldStartLoadWithURL:(NSURL *)URL
 {
-
+    return YES;
 }
 - (void)JQWebViewDidStartLoad:(JQWebView *)webview
 {

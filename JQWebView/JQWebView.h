@@ -14,7 +14,7 @@
 @optional
 - (void)JQWebView:(JQWebView *)webview didFinishLoadingURL:(NSURL *)URL;
 - (void)JQWebView:(JQWebView *)webview didFailToLoadURL:(NSURL *)URL error:(NSError *)error;
-- (void)JQWebView:(JQWebView *)webview shouldStartLoadWithURL:(NSURL *)URL;
+- (BOOL)JQWebView:(JQWebView *)webview shouldStartLoadWithURL:(NSURL *)URL;
 - (void)JQWebViewDidStartLoad:(JQWebView *)webview;
 @end
 
@@ -45,6 +45,7 @@
 @property (nonatomic, strong) UIColor *tintColor;
 //UIProgressView trackTintColor
 @property (nonatomic, strong) UIColor *trackTintColor;
+
 
 
 //Allow for custom activities in the browser by populating this optional array
