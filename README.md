@@ -3,7 +3,7 @@
 2、添加网页加载进度条，可自定义颜色。<br>
 3、支持侧边滑动返回上一级网页。<br>
 cocoaPods安装：<br><br>
-pod 'JQWebView', '~> 0.0.1'
+pod 'JQWebView', '~> 0.0.2'
 <br><br>
 搜索不到，可先执行如下命令行后重试：<br>
 pod repo update<br>
