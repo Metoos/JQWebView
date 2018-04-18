@@ -25,7 +25,7 @@
 }
 - (IBAction)showWebViewAction:(UIButton *)sender {
     
-    JQWebViewController *webView = [[JQWebViewController alloc]initWithURLString:@"https://www.baidu.com"];
+    JQWebViewController *webView = [[JQWebViewController alloc]initWithURLString:@"https://app.xlpkon.com"];
     webView.loadingTrackTintColor = [UIColor whiteColor];
     webView.loadingTintColor = [UIColor redColor];
     [self.navigationController pushViewController:webView animated:YES];
