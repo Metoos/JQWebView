@@ -19,17 +19,26 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WsY-yJ-nCL">
-                                <rect key="frame" x="138" y="318" width="99" height="30"/>
-                                <state key="normal" title="showWebView"/>
+                                <rect key="frame" x="95" y="258.5" width="185" height="30"/>
+                                <state key="normal" title="showJQWebViewController"/>
                                 <connections>
                                     <action selector="showWebViewAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="1LO-Tl-2tn"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xRZ-Lu-t5o">
+                                <rect key="frame" x="77.5" y="338.5" width="220" height="30"/>
+                                <state key="normal" title="showCustomWebViewController"/>
+                                <connections>
+                                    <action selector="showCustomController:" destination="BYZ-38-t0r" eventType="touchUpInside" id="I66-vx-day"/>
                                 </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="WsY-yJ-nCL" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="25O-a8-KSE"/>
+                            <constraint firstItem="WsY-yJ-nCL" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="-60" id="25O-a8-KSE"/>
+                            <constraint firstItem="xRZ-Lu-t5o" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="4Gj-B3-a9K"/>
                             <constraint firstItem="WsY-yJ-nCL" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="EAh-OQ-wh1"/>
+                            <constraint firstItem="xRZ-Lu-t5o" firstAttribute="top" secondItem="WsY-yJ-nCL" secondAttribute="bottom" constant="50" id="i9G-On-bxk"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>

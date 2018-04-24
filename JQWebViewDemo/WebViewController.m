@@ -1,15 +1,19 @@
 //
-//  JQWebViewController.m
-//  DuoMiPay
+//  WebViewController.m
+//  VMProject
 //
-//  Created by life on 2018/1/2.
-//  Copyright © 2018年 zjq. All rights reserved.
+//  Created by life on 2018/4/16.
+//  Copyright © 2018年 hdyg. All rights reserved.
 //
 
-#import "JQWebViewController.h"
+#import "WebViewController.h"
 #import "JQWebView.h"
-@interface JQWebViewController ()<JQWebViewDelegate>
+@interface WebViewController ()<JQWebViewDelegate>
+{
+    BOOL isLoad;
+}
 
+@property (strong, nonatomic) NSString *loadedURL;
 @property (strong, nonatomic) JQWebView *webView;
 
 @property (strong, nonatomic) UILabel *errorLab;
@@ -17,12 +21,29 @@
 @property (strong, nonatomic) UIBarButtonItem *backBtn;
 @property (strong, nonatomic) UIBarButtonItem *closeBtn;
 
-@property (strong, nonatomic) NSString *urlString;
+//@property (strong, nonatomic) NSString *urlString;
 @property (strong, nonatomic) NSString *htmlString;
+
+/** 导航标题 showsPageTitleInNavigationBar = NO 时 有效 */
+@property (strong, nonatomic) NSString *navigationTitleString;
+/** 显示每个网页的标题 默认 YES*/
+@property (nonatomic, assign) BOOL showsPageTitleInNavigationBar;
+
+/** 返回按钮图片 */
+@property (nonatomic, strong) UIImage *backButtonImage;
+/** 进度条背景颜色 */
+@property (nonatomic, strong) UIColor *loadingTrackTintColor;
+/** 进度条进度值颜色 */
+@property (nonatomic, strong) UIColor *loadingTintColor;
+//@property (nonatomic, strong) UIColor *barTintColor;
+/** 关闭全部网页按钮是否隐藏 默认显示 */
+@property (nonatomic, assign) BOOL closeButtonHidden;
+//@property (nonatomic, assign) BOOL showsURLInNavigationBar;
+
 
 @end
 
-@implementation JQWebViewController
+@implementation WebViewController
 
 -(instancetype)initWithURLString:(NSString *)urlString
 {
@@ -50,7 +71,9 @@
 - (void)viewDidLoad {
     
     [super viewDidLoad];
-
+    self.webView.wkWebView.scrollView.showsVerticalScrollIndicator = NO;
+    self.webView.wkWebView.scrollView.showsHorizontalScrollIndicator = NO;
+    
     self.backBtn = [[UIBarButtonItem alloc]initWithImage:self.backButtonImage style:UIBarButtonItemStylePlain target:self action:@selector(goBackAction)];
     
     self.closeBtn = [[UIBarButtonItem alloc]initWithTitle:@"关闭" style:UIBarButtonItemStylePlain target:self action:@selector(closeAction)];
@@ -72,10 +95,22 @@
         [self.webView loadHTMLString:self.htmlString];
     }
     
-
+    if (_isHiddenBackItem) {
+        self.navigationItem.leftBarButtonItem = nil;
+    }
     
     // Do any additional setup after loading the view.
 }
+
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    if (!self.webView.wkWebView.isLoading) {
+        [self.webView reload];
+    }
+}
+
 
 - (void)setNavigationTitleString:(NSString *)navigationTitleString
 {
@@ -93,7 +128,7 @@
 - (void)setLoadingTintColor:(UIColor *)loadingTintColor
 {
     _loadingTintColor = loadingTintColor;
- 
+    
     self.webView.tintColor = loadingTintColor;
     
 }
@@ -123,29 +158,75 @@
 #pragma mark - JQWebViewDelegate
 - (void)JQWebView:(JQWebView *)webview didFinishLoadingURL:(NSURL *)URL
 {
+
     
     if (self.showsPageTitleInNavigationBar) {
         NSString *title = [webview getHTMLDocumentTitle];
         if (title.length>0) {
-            self.title = title;
+            self.navigationItem.title = title;
         }
     }
-   
-    
     
     if ([self.webView canGoBack] && !self.closeButtonHidden) {
         self.navigationItem.leftBarButtonItems = @[self.backBtn,self.closeBtn];
     }else
     {
-        self.navigationItem.leftBarButtonItems = @[self.backBtn];
+        if (!_isHiddenBackItem) {
+           self.navigationItem.leftBarButtonItems = @[self.backBtn];
+        }
     }
+    
 }
 - (void)JQWebView:(JQWebView *)webview didFailToLoadURL:(NSURL *)URL error:(NSError *)error
 {
-    
+ 
 }
 - (BOOL)JQWebView:(JQWebView *)webview shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(NSInteger)navigationType
 {
+    NSURL *URL = request.URL;
+//    NSLog(@"urlbaseURL = %@ \n 请求URL = %@",URL.baseURL,URL.absoluteString);
+    __block BOOL isreturnNO = NO;
+    [self.navigationController.viewControllers enumerateObjectsUsingBlock:^(__kindof UIViewController * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+         //判断网页是否已打开 已打开则返回打开页
+        if ([obj isKindOfClass:self.class]) {
+            NSLog(@"((WebViewController*)obj).urlString = %@",((WebViewController*)obj).urlString);
+             if ([((WebViewController*)obj).urlString isEqualToString:URL.absoluteString] && ![self.urlString isEqualToString:URL.absoluteString]) {
+                 [self.navigationController popToViewController:obj animated:YES];
+                 
+                 isreturnNO = YES;
+             }
+        }
+    }];
+    if (isreturnNO) {
+        return NO;
+    }
+    
+    
+    if (!webview.wkWebView.isLoading) {
+        if (![self.urlString isEqualToString:URL.absoluteString]) {
+            
+            
+            if (navigationType == WKNavigationTypeOther) {
+                return NO;
+            }
+            //加载的链接有重定向时，解决中间空界面或多重界面加载问题
+           NSURLSessionDataTask *sessionDataTask = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+                if (error || ([response respondsToSelector:@selector(statusCode)] && [((NSHTTPURLResponse *)response) statusCode] != 200 && [((NSHTTPURLResponse *)response) statusCode] != 302)) {
+                    //Show error message
+                    NSLog(@"statusCode = %ld",[((NSHTTPURLResponse *)response) statusCode]);
+                }else {
+                    
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        WebViewController *webViewVC = [[WebViewController alloc]initWithURLString:URL.absoluteString];
+                        [self.navigationController pushViewController:webViewVC animated:YES];
+                    });
+                  
+                }
+            }];
+            [sessionDataTask resume];
+            return NO;
+        }
+    }
     return YES;
 }
 - (void)JQWebViewDidStartLoad:(JQWebView *)webview

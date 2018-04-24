@@ -14,7 +14,7 @@
 @optional
 - (void)JQWebView:(JQWebView *)webview didFinishLoadingURL:(NSURL *)URL;
 - (void)JQWebView:(JQWebView *)webview didFailToLoadURL:(NSURL *)URL error:(NSError *)error;
-- (BOOL)JQWebView:(JQWebView *)webview shouldStartLoadWithURL:(NSURL *)URL;
+- (BOOL)JQWebView:(JQWebView *)webview shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(NSInteger)navigationType;
 - (void)JQWebViewDidStartLoad:(JQWebView *)webview;
 @end
 

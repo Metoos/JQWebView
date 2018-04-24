@@ -259,10 +259,6 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
     
     if(webView == self.uiWebView) {
-        
-     
-  
-        
         if(![self externalAppRequiredToOpenURL:request.URL]) {
             self.uiWebViewCurrentURL = request.URL;
             self.uiWebViewIsLoading = YES;
@@ -271,7 +267,13 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
             
             
             //back delegate
-          return [self.delegate JQWebView:self shouldStartLoadWithURL:request.URL];
+            if (self.delegate && [self.delegate respondsToSelector:@selector(JQWebView:shouldStartLoadWithRequest:navigationType:)]) {
+                return [self.delegate JQWebView:self shouldStartLoadWithRequest:request navigationType:navigationType];
+            }else
+            {
+                return YES;
+            }
+          
         }
         else {
             [self launchExternalAppWithURL:request.URL];
@@ -505,7 +507,12 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 -(BOOL)callback_webViewShouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(NSInteger)navigationType
 {
     //back delegate
-    return [self.delegate JQWebView:self shouldStartLoadWithURL:request.URL];
+    if (self.delegate && [self.delegate respondsToSelector:@selector(JQWebView:shouldStartLoadWithRequest:navigationType:)]) {
+        return [self.delegate JQWebView:self shouldStartLoadWithRequest:request navigationType:navigationType];
+    }else
+    {
+        return YES;
+    }
 
 }
 

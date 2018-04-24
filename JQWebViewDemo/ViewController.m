@@ -8,6 +8,7 @@
 
 #import "ViewController.h"
 #import "JQWebViewController.h"
+#import "WebViewController.h"
 @interface ViewController ()
 
 
@@ -25,10 +26,19 @@
 }
 - (IBAction)showWebViewAction:(UIButton *)sender {
     
-    JQWebViewController *webView = [[JQWebViewController alloc]initWithURLString:@"https://app.xlpkon.com"];
+    JQWebViewController *webView = [[JQWebViewController alloc]initWithURLString:@"https://m.fliggy.com"];
     webView.loadingTrackTintColor = [UIColor whiteColor];
     webView.loadingTintColor = [UIColor redColor];
     [self.navigationController pushViewController:webView animated:YES];
+    
+}
+
+
+- (IBAction)showCustomController:(UIButton *)sender {
+    
+    WebViewController *webView = [[WebViewController alloc]initWithURLString:@"https://m.vmall.com"];
+    [self.navigationController pushViewController:webView animated:YES];
+    
     
 }
 

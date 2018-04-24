@@ -16,6 +16,7 @@
 		1C2FD51F207E12E80040DB7D /* jq_back@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 1C2FD51A207E12E80040DB7D /* jq_back@2x.png */; };
 		1C2FD520207E12E80040DB7D /* JQWebView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C2FD51C207E12E80040DB7D /* JQWebView.m */; };
 		1C2FD521207E12E80040DB7D /* JQWebViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C2FD51E207E12E80040DB7D /* JQWebViewController.m */; };
+		1C5ACC39208F2E9700901452 /* WebViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C5ACC38208F2E9600901452 /* WebViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +35,8 @@
 		1C2FD51C207E12E80040DB7D /* JQWebView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JQWebView.m; sourceTree = "<group>"; };
 		1C2FD51D207E12E80040DB7D /* JQWebViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JQWebViewController.h; sourceTree = "<group>"; };
 		1C2FD51E207E12E80040DB7D /* JQWebViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JQWebViewController.m; sourceTree = "<group>"; };
+		1C5ACC37208F2E9600901452 /* WebViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebViewController.h; sourceTree = "<group>"; };
+		1C5ACC38208F2E9600901452 /* WebViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +74,8 @@
 				1C2FD4FB207E01A80040DB7D /* AppDelegate.m */,
 				1C2FD4FD207E01A80040DB7D /* ViewController.h */,
 				1C2FD4FE207E01A80040DB7D /* ViewController.m */,
+				1C5ACC37208F2E9600901452 /* WebViewController.h */,
+				1C5ACC38208F2E9600901452 /* WebViewController.m */,
 				1C2FD500207E01A80040DB7D /* Main.storyboard */,
 				1C2FD503207E01AB0040DB7D /* Assets.xcassets */,
 				1C2FD505207E01AB0040DB7D /* LaunchScreen.storyboard */,
@@ -164,6 +169,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1C2FD521207E12E80040DB7D /* JQWebViewController.m in Sources */,
+				1C5ACC39208F2E9700901452 /* WebViewController.m in Sources */,
 				1C2FD4FF207E01A80040DB7D /* ViewController.m in Sources */,
 				1C2FD50A207E01AB0040DB7D /* main.m in Sources */,
 				1C2FD520207E12E80040DB7D /* JQWebView.m in Sources */,
@@ -307,8 +313,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 3ASAU842BL;
 				INFOPLIST_FILE = JQWebViewDemo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -325,8 +332,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 3ASAU842BL;
 				INFOPLIST_FILE = JQWebViewDemo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
