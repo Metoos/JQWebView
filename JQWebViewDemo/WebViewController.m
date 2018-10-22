@@ -99,9 +99,32 @@
         self.navigationItem.leftBarButtonItem = nil;
     }
     
+    
+    //添加js交互调用原生方法
+    [self addScriptMessage];
     // Do any additional setup after loading the view.
 }
 
+- (void)addScriptMessage{
+    
+    [self.webView addScriptMessageWithName:@"ScanAction" handler:^(id data) {
+        NSLog(@"ScanAction = %@",data);
+    }];
+    
+    [self.webView addScriptMessageWithName:@"Share" handler:^(id data) {
+        NSLog(@"Share = %@",data);
+    }];
+    [self.webView addScriptMessageWithName:@"Location" handler:^(id data) {
+        NSLog(@"Location = %@",data);
+    }];
+    [self.webView addScriptMessageWithName:@"Color" handler:^(id data) {
+        NSLog(@"Color = %@",data);
+    }];
+    [self.webView addScriptMessageWithName:@"payClick" handler:^(id data) {
+        NSLog(@"payClick = %@",data);
+    }];
+    
+}
 
 - (void)viewWillAppear:(BOOL)animated
 {

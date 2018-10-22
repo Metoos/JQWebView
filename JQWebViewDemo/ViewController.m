@@ -36,7 +36,8 @@
 
 - (IBAction)showCustomController:(UIButton *)sender {
     
-    WebViewController *webView = [[WebViewController alloc]initWithURLString:@"https://m.vmall.com"];
+    NSString *html = [[NSString alloc]initWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"index" ofType:@"html"] encoding:NSUTF8StringEncoding error:nil];
+    WebViewController *webView = [[WebViewController alloc]initWithHTMLString:html];
     [self.navigationController pushViewController:webView animated:YES];
     
     

@@ -123,16 +123,13 @@
 #pragma mark - JQWebViewDelegate
 - (void)JQWebView:(JQWebView *)webview didFinishLoadingURL:(NSURL *)URL
 {
-    
     if (self.showsPageTitleInNavigationBar) {
         NSString *title = [webview getHTMLDocumentTitle];
         if (title.length>0) {
             self.title = title;
         }
     }
-   
-    
-    
+
     if ([self.webView canGoBack] && !self.closeButtonHidden) {
         self.navigationItem.leftBarButtonItems = @[self.backBtn,self.closeBtn];
     }else

@@ -7,12 +7,13 @@
 //
 
 #import "JQWebView.h"
+#import "JQWKScriptMessageDelegate.h"
 
 #define isiOS8 [[[UIDevice currentDevice] systemVersion] floatValue]>=8.0
 static void *JQWebBrowserContext = &JQWebBrowserContext;
 
 
-@interface JQWebView ()<UIAlertViewDelegate>
+@interface JQWebView ()<UIAlertViewDelegate,WKScriptMessageHandler>
 @property (nonatomic, strong) NSTimer *fakeProgressTimer;
 @property (nonatomic, assign) BOOL uiWebViewIsLoading;
 @property (nonatomic, strong) NSURL *uiWebViewCurrentURL;
@@ -21,7 +22,7 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 
 @property (nonatomic, strong) NSString *webViewTitle;
 
-
+@property (nonatomic, strong) NSMutableArray *scriptMessageHandlers;
 
 @end
 
@@ -116,6 +117,37 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
         
     }
 }
+
+- (void)addScriptMessageWithName:(NSString *)name handler:(ScriptMessageHandler)handler
+{
+    if (name == nil || [name isEqualToString:@""]) {
+        return;
+    }
+    
+    [self.wkWebView.configuration.userContentController addScriptMessageHandler:[[JQWKScriptMessageDelegate alloc]initWithDelegate:self] name:name];
+    
+    NSMutableDictionary *dic = [[NSMutableDictionary alloc]init];
+    [dic setValue:name forKey:@"name"];
+    if (handler) {
+        [dic setValue:handler forKey:@"handler"];
+    }
+    [self.scriptMessageHandlers addObject:dic];
+    
+}
+
+- (void)userContentController:(nonnull WKUserContentController *)userContentController didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
+    
+    [self.scriptMessageHandlers enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        if ([message.name isEqualToString:obj[@"name"]]) {
+            if (obj[@"handler"]) {
+                ScriptMessageHandler handler = obj[@"handler"];
+                handler(message.body);
+            }
+        }
+    }];
+}
+
+
 
 
 #pragma mark - Public Interface
@@ -264,8 +296,7 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
             self.uiWebViewIsLoading = YES;
             
             [self fakeProgressViewStartLoading];
-            
-            
+
             //back delegate
             if (self.delegate && [self.delegate respondsToSelector:@selector(JQWebView:shouldStartLoadWithRequest:navigationType:)]) {
                 return [self.delegate JQWebView:self shouldStartLoadWithRequest:request navigationType:navigationType];
@@ -482,12 +513,8 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
             return;
         }
     }
-    
-    
-    
     decisionHandler(WKNavigationActionPolicyAllow);
-    
-    
+
 }
 
 - (BOOL)isWirelessDownloadManifestForURL:(NSURL*)url
@@ -668,15 +695,32 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
     
 }
 
+- (NSMutableArray *)scriptMessageHandlers
+{
+    if (_scriptMessageHandlers == nil) {
+        _scriptMessageHandlers = [[NSMutableArray alloc]init];
+    }
+    return _scriptMessageHandlers;
+}
+
 #pragma mark - Dealloc
 
 - (void)dealloc {
+    NSLog(@"JQWebView dealloc");
     [self.uiWebView setDelegate:nil];
     [self.wkWebView setNavigationDelegate:nil];
     [self.wkWebView setUIDelegate:nil];
     [self.wkWebView removeObserver:self forKeyPath:NSStringFromSelector(@selector(estimatedProgress))];
     [self.wkWebView removeObserver:self forKeyPath:@"title"];
     
+    [self.scriptMessageHandlers enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSString *name  = obj[@"name"];
+        [self.wkWebView.configuration.userContentController removeScriptMessageHandlerForName:name];
+    }];
+    [self.scriptMessageHandlers removeAllObjects];
+    self.scriptMessageHandlers = nil;
+    
 }
 
 @end
+

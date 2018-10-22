@@ -18,6 +18,9 @@
 - (void)JQWebViewDidStartLoad:(JQWebView *)webview;
 @end
 
+
+
+typedef void(^ScriptMessageHandler)(id data);
 @interface JQWebView : UIView<WKNavigationDelegate, WKUIDelegate, UIWebViewDelegate>
 
 
@@ -25,6 +28,9 @@
 
 //JQdelegate
 @property (nonatomic, weak) id <JQWebViewDelegate> delegate;
+
+// add js function (window.webkit.messageHandlers.<name>.postMessage(<data>);)
+- (void)addScriptMessageWithName:(NSString *)name handler:(ScriptMessageHandler)handler;
 
 // The main and only UIProgressView
 @property (nonatomic, strong) UIProgressView *progressView;
