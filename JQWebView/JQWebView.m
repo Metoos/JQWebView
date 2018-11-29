@@ -14,6 +14,9 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 
 
 @interface JQWebView ()<UIAlertViewDelegate,WKScriptMessageHandler>
+{
+    CGFloat keyboardWillShowY;
+}
 @property (nonatomic, strong) NSTimer *fakeProgressTimer;
 @property (nonatomic, assign) BOOL uiWebViewIsLoading;
 @property (nonatomic, strong) NSURL *uiWebViewCurrentURL;
@@ -76,6 +79,10 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
                 self.wkWebView.scrollView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
                 self.wkWebView.scrollView.scrollIndicatorInsets = self.wkWebView.scrollView.contentInset;
             }
+            
+            [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
+            
+            [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
  
         }
         else  {
@@ -103,6 +110,16 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
     return self;
 }
 
+- (void)keyboardWillShow:(NSNotification *)notification
+{
+    keyboardWillShowY = self.wkWebView.scrollView.contentOffset.y;
+}
+
+- (void)keyboardWillHide:(NSNotification *)notification
+{
+    [self.wkWebView.scrollView setContentOffset:CGPointMake(0, keyboardWillShowY) animated:YES];
+    
+}
 
 - (void)setFrame:(CGRect)frame
 {
