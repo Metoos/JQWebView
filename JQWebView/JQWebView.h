@@ -37,7 +37,7 @@ typedef void(^ScriptMessageHandler)(id data);
 // The web views
 // Depending on the version of iOS, one of these will be set
 @property (nonatomic, strong) WKWebView *wkWebView;
-@property (nonatomic, strong) UIWebView *uiWebView;
+//@property (nonatomic, strong) UIWebView *uiWebView;
 
 
 @property (nonatomic, assign) BOOL scrollEnabled;
@@ -110,5 +110,36 @@ typedef void(^ScriptMessageHandler)(id data);
  */
 - (void)reload;
 
+
+/* 清除全部缓存 */
++ (void)deleteAllWebCache;
+
+/*
+   自定义清除缓存
+   在磁盘缓存上。
+   WKWebsiteDataTypeDiskCache,
+   
+   html离线Web应用程序缓存。
+   WKWebsiteDataTypeOfflineWebApplicationCache,
+   
+   内存缓存。
+   WKWebsiteDataTypeMemoryCache,
+   
+   本地存储。
+   WKWebsiteDataTypeLocalStorage,
+   
+   Cookies
+   WKWebsiteDataTypeCookies,
+   
+   会话存储
+   WKWebsiteDataTypeSessionStorage,
+   
+   IndexedDB数据库。
+   WKWebsiteDataTypeIndexedDBDatabases,
+   
+   查询数据库。
+   WKWebsiteDataTypeWebSQLDatabases
+   */
++ (void)deleteWebCacheOfWebsiteDataTypes:(NSArray *)types completionHandler:(void (^)(void))completionHandler;
 
 @end

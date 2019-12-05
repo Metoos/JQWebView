@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "JQWebView"
-  s.version      = "1.0.4"
+  s.version      = "1.1.0"
   s.summary      = "JQWebView."
 
   # This description is used to generate tags and improve search results.
@@ -64,7 +64,7 @@ Pod::Spec.new do |s|
   #
 
    s.platform     = :ios
-   s.ios.deployment_target = "7.0"
+   s.ios.deployment_target = "8.0"
 
   #  When using multiple platforms
   # s.ios.deployment_target = "5.0"

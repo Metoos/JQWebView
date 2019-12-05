@@ -1,70 +1,79 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf8">
-            <script language="javascript">
-            var ctuapp_share_img="www.baidu.com";
-            function scanClick() {
-                window.webkit.messageHandlers.ScanAction.postMessage(null);
-            }
+            
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+                <!-- viewport ：用户网页的可视区域.
+                    width：控制viewport的大小，可以指定一个值，如600，或者特殊的值，如device-width为设备的宽度（单位为缩放100%时的CSS的像素）。
+                height：和 width 相对应，指定高度。
+                initial-scale：初始缩放比例，也即是当页面第一次 load 的时候缩放比例。
+                maximum-scale：允许用户缩放到的最大比例。
+                user-scalable：用户是否可以手动缩放。
+                -->
+                <script language="javascript">
+                    var ctuapp_share_img="www.baidu.com";
+                    function scanClick() {
+                        window.webkit.messageHandlers.ScanAction.postMessage(null);
+                    }
                 
-            function shareClick() {
-                window.webkit.messageHandlers.Share.postMessage({title:'测试分享的标题',content:'测试分享的内容',url:'http://m.rblcmall.com/share/openShare.htm?share_uuid=shdfxdfdsfsdfs&share_url=http://m.rblcmall.com/store_index_32787.htm&imagePath=http://c.hiphotos.baidu.com/image/pic/item/f3d3572c11dfa9ec78e256df60d0f703908fc12e.jpg'});
-            }
-            
-            function locationClick() {
-                window.webkit.messageHandlers.Location.postMessage(null);
-            }
-            
-            function setLocation(location) {
-                asyncAlert(location);
-                document.getElementById("returnValue").value = location;
-            }
-            
-            function getQRCode(result) {
-                asyncAlert(result);
-                document.getElementById("returnValue").value = result;
-            }
-            
-            function colorClick() {
-                window.webkit.messageHandlers.Color.postMessage([67,205,128,0.5]);
-            }
-            
-            function payClick() {
-                window.webkit.messageHandlers.Pay.postMessage({order_no:'201511120981234',channel:'wx',amount:1,subject:'粉色外套'});
-            }
-            
-            function payResult(str) {
-                asyncAlert(str);
-                document.getElementById("returnValue").value = str;
-            }
-            
-            function shareResult(channel_id,share_channel,share_url) {
-                var content = channel_id+","+share_channel+","+share_url;
-                asyncAlert(content);
-                document.getElementById("returnValue").value = content;
-            }
-
-            function shake() {
-                window.webkit.messageHandlers.Shake.postMessage(null);
-            }
-            
-            function goBack() {
-                window.webkit.messageHandlers.GoBack.postMessage(null);
-            }
-            
-            function playSound() {
-                window.webkit.messageHandlers.PlaySound.postMessage('shake_sound_male.wav');
-            }
-            
-            function asyncAlert(content) {
-                setTimeout(function(){
-                           alert(content);
-                           },1);
-            }
-            
-            
-            </script>
-            </head>
+                function shareClick() {
+                    window.webkit.messageHandlers.Share.postMessage({title:'测试分享的标题',content:'测试分享的内容',url:'http://m.rblcmall.com/share/openShare.htm?share_uuid=shdfxdfdsfsdfs&share_url=http://m.rblcmall.com/store_index_32787.htm&imagePath=http://c.hiphotos.baidu.com/image/pic/item/f3d3572c11dfa9ec78e256df60d0f703908fc12e.jpg'});
+                }
+                
+                function locationClick() {
+                    window.webkit.messageHandlers.Location.postMessage(null);
+                }
+                
+                function setLocation(location) {
+                    asyncAlert(location);
+                    document.getElementById("returnValue").value = location;
+                }
+                
+                function getQRCode(result) {
+                    asyncAlert(result);
+                    document.getElementById("returnValue").value = result;
+                }
+                
+                function colorClick() {
+                    window.webkit.messageHandlers.Color.postMessage([67,205,128,0.5]);
+                }
+                
+                function payClick() {
+                    window.webkit.messageHandlers.Pay.postMessage({order_no:'201511120981234',channel:'wx',amount:1,subject:'粉色外套'});
+                }
+                
+                function payResult(str) {
+                    asyncAlert(str);
+                    document.getElementById("returnValue").value = str;
+                }
+                
+                function shareResult(channel_id,share_channel,share_url) {
+                    var content = channel_id+","+share_channel+","+share_url;
+                    asyncAlert(content);
+                    document.getElementById("returnValue").value = content;
+                }
+                
+                function shake() {
+                    window.webkit.messageHandlers.Shake.postMessage(null);
+                }
+                
+                function goBack() {
+                    window.webkit.messageHandlers.GoBack.postMessage(null);
+                }
+                
+                function playSound() {
+                    window.webkit.messageHandlers.PlaySound.postMessage('shake_sound_male.wav');
+                }
+                
+                function asyncAlert(content) {
+                    setTimeout(function(){
+                               alert(content);
+                               },1);
+                }
+                
+                
+                    </script>
+                </head>
     
     <body>
         <h1>这是按钮调用</h1>
@@ -78,31 +87,60 @@
         <input type="button" value="播放声音" onclick="playSound()" />
         <p>
         <a href='https://m.vmall.com'>https://m.vmall.com</a>
-        
-<!--        <h1>这是文件上传</h1>-->
-<!---->
-<!--        <input type="file" />-->
-<!--        -->
-<!--        <h1>这是回调结果展示区</h1>-->
-<!--        <textarea id ="returnValue" type="value" rows="5" cols="40">-->
-<!--        -->
-<!--        </textarea>-->
-<!--        -->
-<!--        <h4>竖直方向的表头：</h4>-->
-<!--        <table border="1" style="width:90%;height:600px">-->
-<!--            <tr>-->
-<!--                <th>姓名</th>-->
-<!--                <td>Bill Gates</td>-->
-<!--            </tr>-->
-<!--            <tr>-->
-<!--                <th>电话</th>-->
-<!--                <td>555 77 854</td>-->
-<!--            </tr>-->
-<!--            <tr>-->
-<!--                <th>传真</th>-->
-<!--                <td>555 77 855</td>-->
-<!--            </tr>-->
-<!--        </table>-->
+        <p/>
+        <p/>
+        <input type="text" name="username" placeholder="请输入用户名" />
+        <p/>
+        <p/>
+        <input type="text" name="password" placeholder="请输入密码" />
+        <p/>
+        <p/>
+        <input type="text" name="username" placeholder="请输入用户名" />
+        <p/>
+        <p/>
+        <input type="text" name="password" placeholder="请输入密码" />
+        <p/>
+        <p/>
+        <input type="text" name="username" placeholder="请输入用户名" />
+        <p/>
+        <p/>
+        <input type="text" name="password" placeholder="请输入密码" />
+        <p/>
+        <p/>
+        <input type="text" name="username" placeholder="请输入用户名" />
+        <p/>
+        <p/>
+        <input type="text" name="password" placeholder="请输入密码" />
+        <p/>
+        <p/>
+        <input type="text" name="username" placeholder="请输入用户名" />
+        <p/>
+        <p/>
+        <input type="text" name="password" placeholder="请输入密码" />
+        <!--        <h1>这是文件上传</h1>-->
+        <!---->
+        <!--        <input type="file" />-->
+        <!--        -->
+        <!--        <h1>这是回调结果展示区</h1>-->
+        <!--        <textarea id ="returnValue" type="value" rows="5" cols="40">-->
+        <!--        -->
+        <!--        </textarea>-->
+        <!--        -->
+        <!--        <h4>竖直方向的表头：</h4>-->
+        <!--        <table border="1" style="width:90%;height:600px">-->
+        <!--            <tr>-->
+        <!--                <th>姓名</th>-->
+        <!--                <td>Bill Gates</td>-->
+        <!--            </tr>-->
+        <!--            <tr>-->
+        <!--                <th>电话</th>-->
+        <!--                <td>555 77 854</td>-->
+        <!--            </tr>-->
+        <!--            <tr>-->
+        <!--                <th>传真</th>-->
+        <!--                <td>555 77 855</td>-->
+        <!--            </tr>-->
+        <!--        </table>-->
         
         
     </body>

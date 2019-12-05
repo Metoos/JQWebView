@@ -13,9 +13,9 @@
 static void *JQWebBrowserContext = &JQWebBrowserContext;
 
 
-@interface JQWebView ()<UIAlertViewDelegate,WKScriptMessageHandler>
+@interface JQWebView ()<UIAlertViewDelegate,WKScriptMessageHandler,UIScrollViewDelegate>
 {
-    CGFloat keyboardWillShowY;
+    CGPoint keyboardWillShowPoint;
     BOOL keyboardWillShow;
 }
 @property (nonatomic, strong) NSTimer *fakeProgressTimer;
@@ -32,73 +32,69 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 
 @implementation JQWebView
 
++ (WKProcessPool*)singleWkProcessPool{
+    
+    static WKProcessPool *sharedPool;
+    
+    static dispatch_once_t onceToken;
+    
+    dispatch_once(&onceToken, ^{
+        
+        sharedPool = [[WKProcessPool alloc]init];
+        
+    });
+    
+    return sharedPool;
+}
+
 #pragma mark --Initializers
 - (instancetype)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
     if (self) {
         
-     
-        if(isiOS8) {
-            
-            //初始化一个WKWebViewConfiguration对象
-            WKWebViewConfiguration *config = [WKWebViewConfiguration new];
-            //初始化偏好设置属性：preferences
-            config.preferences = [WKPreferences new];
-            //The minimum font size in points default is 0;
-            config.preferences.minimumFontSize = 0;
-            //是否支持JavaScript
-            config.preferences.javaScriptEnabled = YES;
-            //不通过用户交互，是否可以打开窗口
-            config.preferences.javaScriptCanOpenWindowsAutomatically = YES;
-            self.wkWebView = [[WKWebView alloc] initWithFrame:frame configuration:config];
-            
-        }
-        else {
-            
-            self.uiWebView = [[UIWebView alloc] init];
-            
-        }
+        //初始化一个WKWebViewConfiguration对象
+        WKWebViewConfiguration *config = [WKWebViewConfiguration new];
+        //初始化偏好设置属性：preferences
+        config.preferences = [WKPreferences new];
+        //The minimum font size in points default is 0;
+        config.preferences.minimumFontSize = 0;
+        //是否支持JavaScript
+        config.preferences.javaScriptEnabled = YES;
+        //不通过用户交互，是否可以打开窗口
+        config.preferences.javaScriptCanOpenWindowsAutomatically = YES;
         
+        //ProcessPool改成单例可实现多webview缓存同步
+        config.processPool = [JQWebView singleWkProcessPool];
         
+        self.wkWebView = [[WKWebView alloc] initWithFrame:frame configuration:config];
+        
+    
         self.backgroundColor = [UIColor colorWithRed:240.0f/255.0f green:245.0/255.0 blue:245.0/255.0 alpha:1];
-        if(self.wkWebView) {
-            [self.wkWebView setNavigationDelegate:self];
-            [self.wkWebView setUIDelegate:self];
-            [self.wkWebView setMultipleTouchEnabled:YES];
-            [self.wkWebView setAutoresizesSubviews:YES];
-            [self.wkWebView.scrollView setAlwaysBounceVertical:YES];
-            // 标识是否支持左、右swipe手势是否可以前进、后退
-            self.wkWebView.allowsBackForwardNavigationGestures = YES;
-            [self addSubview:self.wkWebView];
-            self.wkWebView.scrollView.bounces = NO;
-            [self.wkWebView addObserver:self forKeyPath:NSStringFromSelector(@selector(estimatedProgress)) options:0 context:JQWebBrowserContext];
-             [self.wkWebView addObserver:self forKeyPath:@"title" options:NSKeyValueObservingOptionNew context:JQWebBrowserContext];
-            
-            if (@available(iOS 11.0, *)) {
-                self.wkWebView.scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
-                self.wkWebView.scrollView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
-                self.wkWebView.scrollView.scrollIndicatorInsets = self.wkWebView.scrollView.contentInset;
-            }
-            
-            [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
-            
-            [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
- 
+        
+        [self.wkWebView setNavigationDelegate:self];
+        [self.wkWebView setUIDelegate:self];
+        [self.wkWebView setMultipleTouchEnabled:YES];
+        [self.wkWebView setAutoresizesSubviews:YES];
+        [self.wkWebView.scrollView setAlwaysBounceVertical:YES];
+        // 标识是否支持左、右swipe手势是否可以前进、后退
+        self.wkWebView.allowsBackForwardNavigationGestures = YES;
+        [self addSubview:self.wkWebView];
+        self.wkWebView.scrollView.bounces = NO;
+        [self.wkWebView addObserver:self forKeyPath:NSStringFromSelector(@selector(estimatedProgress)) options:0 context:JQWebBrowserContext];
+        [self.wkWebView addObserver:self forKeyPath:@"title" options:NSKeyValueObservingOptionNew context:JQWebBrowserContext];
+        self.wkWebView.scrollView.delegate = self;
+        if (@available(iOS 11.0, *)) {
+            self.wkWebView.scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+            self.wkWebView.scrollView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+            self.wkWebView.scrollView.scrollIndicatorInsets = self.wkWebView.scrollView.contentInset;
         }
-        else  {
-            [self.uiWebView setFrame:frame];
-            [self.uiWebView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
-            [self.uiWebView setDelegate:self];
-            [self.uiWebView setMultipleTouchEnabled:YES];
-            [self.uiWebView setAutoresizesSubviews:YES];
-            [self.uiWebView setScalesPageToFit:YES];
-            [self.uiWebView.scrollView setAlwaysBounceVertical:YES];
-            self.uiWebView.scrollView.bounces = NO;
-            
-            [self addSubview:self.uiWebView];
-        }
-
+        
+        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
+        
+        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+        
+        
         self.progressView = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleDefault];
         [self.progressView setFrame:CGRectMake(0, (([[UIApplication sharedApplication] statusBarFrame].size.height)>=44)?88.0f:64.0f, self.frame.size.width, self.progressView.frame.size.height)];
         [self setTrackTintColor:[UIColor colorWithWhite:1.0f alpha:0.0f]];
@@ -114,30 +110,26 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 - (void)keyboardWillShow:(NSNotification *)notification
 {
     if (!keyboardWillShow) {//避免第三方多出调用keyboardWillShow:
-        keyboardWillShowY = self.wkWebView.scrollView.contentOffset.y;
+        keyboardWillShowPoint = self.wkWebView.scrollView.contentOffset;
         keyboardWillShow = YES;
+
     }
 }
 
 - (void)keyboardWillHide:(NSNotification *)notification
 {
-    [self.wkWebView.scrollView setContentOffset:CGPointMake(0, keyboardWillShowY) animated:YES];
+    //延迟调整滚动 避免切换键盘出现界面跳动问题
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self.wkWebView.scrollView setContentOffset:self->keyboardWillShowPoint animated:YES];
+    });
     keyboardWillShow = NO;
-    
+        
 }
 
 - (void)setFrame:(CGRect)frame
 {
     [super setFrame:frame];
-    
-    if(self.wkWebView) {
-        [self.wkWebView setFrame:self.bounds];
-    }
-    else  {
-        [self.uiWebView setFrame:self.bounds];
-        
-        
-    }
+    [self.wkWebView setFrame:self.bounds];
 }
 
 - (void)addScriptMessageWithName:(NSString *)name handler:(ScriptMessageHandler)handler
@@ -174,25 +166,13 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 
 #pragma mark - Public Interface
 - (void)loadRequest:(NSURLRequest *)request {
-    if(self.wkWebView) {
-        [self.wkWebView loadRequest:request];
-    }
-    else  {
-        [self.uiWebView loadRequest:request];
-        
-        
-    }
+    [self.wkWebView loadRequest:request];
 }
 
 - (void)setScrollEnabled:(BOOL)scrollEnabled
 {
     _scrollEnabled = scrollEnabled;
-    if(self.wkWebView) {
-        self.wkWebView.scrollView.scrollEnabled = _scrollEnabled;
-    }else  {
-        self.uiWebView.scrollView.scrollEnabled = _scrollEnabled;
-    }
-    
+    self.wkWebView.scrollView.scrollEnabled = _scrollEnabled;
 }
 
 - (void)loadURL:(NSURL *)URL {
@@ -205,84 +185,54 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 }
 
 - (void)loadHTMLString:(NSString *)HTMLString {
-    if(self.wkWebView) {
-        [self.wkWebView loadHTMLString:HTMLString baseURL:nil];
-    }
-    else if(self.uiWebView) {
-        [self.uiWebView loadHTMLString:HTMLString baseURL:nil];
-    }
+    
+    [self.wkWebView loadHTMLString:HTMLString baseURL:nil];
 }
 
 // web html document title
 - (NSString *)getHTMLDocumentTitle
 {
-    if (self.wkWebView) {
-        return self.webViewTitle;
-    }else
-    {
-        self.webViewTitle = [self.uiWebView stringByEvaluatingJavaScriptFromString:@"document.title"];
-        return self.webViewTitle;
-    }
+    return self.webViewTitle;
+    
 }
 
 // web html Content scrollHeight
 - (CGFloat)getHTMLScrollHeight
 {
-    if (self.wkWebView) {
-        [self.wkWebView sizeToFit];
-        return self.wkWebView.scrollView.contentSize.height;
-    }else
-    {
-        CGFloat height = [[self.uiWebView stringByEvaluatingJavaScriptFromString:@"document.body.offsetHeight"] floatValue];
-        return height;
-    }
+    [self.wkWebView sizeToFit];
+    return self.wkWebView.scrollView.contentSize.height;
+    
 }
 
 - (BOOL)canGoBack
 {
-    if(self.wkWebView) {
-       return [self.wkWebView canGoBack];
-    }
-    else {
-       return [self.uiWebView canGoBack];
-    }
-
+    return [self.wkWebView canGoBack];
+    
 }
 - (void)goBack
 {
-    if(self.wkWebView) {
-        [self.wkWebView goBack];
-    }
-    else{
-        [self.uiWebView goBack];
-    }
+    
+    [self.wkWebView goBack];
+    
 }
 - (BOOL)canGoForward
 {
-    if(self.wkWebView) {
-       return [self.wkWebView canGoForward];
-    }
-    else {
-       return [self.uiWebView canGoForward];
-    }
+    
+    return [self.wkWebView canGoForward];
+    
 }
 - (void)goForward
 {
-    if(self.wkWebView) {
-        [self.wkWebView goForward];
-    }
-    else {
-        [self.uiWebView goForward];
-    }
+    
+    [self.wkWebView goForward];
+    
+    
 }
 - (void)reload
 {
-    if(self.wkWebView) {
-        [self.wkWebView reload];
-    }
-    else {
-        [self.uiWebView reload];
-    }
+    
+    [self.wkWebView reload];
+    
 }
 
 
@@ -297,44 +247,6 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
     [self.progressView setTrackTintColor:trackTintColor];
 }
 
-
-
-#pragma mark - UIWebViewDelegate
-
-- (void)webViewDidStartLoad:(UIWebView *)webView
-{
-    if(webView == self.uiWebView) {
-        [self.delegate JQWebViewDidStartLoad:self];
-        
-    }
-}
-
-//监视请求
-- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
-    
-    if(webView == self.uiWebView) {
-        if(![self externalAppRequiredToOpenURL:request.URL]) {
-            self.uiWebViewCurrentURL = request.URL;
-            self.uiWebViewIsLoading = YES;
-            
-            [self fakeProgressViewStartLoading];
-
-            //back delegate
-            if (self.delegate && [self.delegate respondsToSelector:@selector(JQWebView:shouldStartLoadWithRequest:navigationType:)]) {
-                return [self.delegate JQWebView:self shouldStartLoadWithRequest:request navigationType:navigationType];
-            }else
-            {
-                return YES;
-            }
-          
-        }
-        else {
-            [self launchExternalAppWithURL:request.URL];
-            return NO;
-        }
-    }
-    return NO;
-}
 
 /* WKWebView默认禁止了一些跳转
  
@@ -381,48 +293,11 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
     
 }
 
-
-- (void)webViewDidFinishLoad:(UIWebView *)webView {
-    
-    
-    if(webView == self.uiWebView) {
-        if(!self.uiWebView.isLoading) {
-            self.uiWebViewIsLoading = NO;
-            
-            [self fakeProgressBarStopLoading];
-        }
-        
-        //back delegate
-        [self.delegate JQWebView:self didFinishLoadingURL:self.uiWebView.request.URL];
-        
-    }
-}
-
-- (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
-    
-    if(webView == self.uiWebView) {
-        if(!self.uiWebView.isLoading) {
-            self.uiWebViewIsLoading = NO;
-            
-            [self fakeProgressBarStopLoading];
-        }
-        
-        //back delegate
-        [self.delegate JQWebView:self didFailToLoadURL:self.uiWebView.request.URL error:error];
-    }
-}
-
-
-
-
 #pragma mark - WKNavigationDelegate
 
 
 - (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation {
-    if(webView == self.wkWebView) {
-        
-        
-        
+    if(self.delegate && [self.delegate respondsToSelector:@selector(JQWebViewDidStartLoad:)]) {
         
         //back delegate
         [self.delegate JQWebViewDidStartLoad:self];
@@ -435,7 +310,7 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
     
-    if(webView == self.wkWebView) {
+    if(self.delegate && [self.delegate respondsToSelector:@selector(JQWebView:didFinishLoadingURL:)]) {
         
         //back delegate
         [self.delegate JQWebView:self didFinishLoadingURL:self.wkWebView.URL];
@@ -444,7 +319,7 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 
 - (void)webView:(WKWebView *)webView didFailProvisionalNavigation:(WKNavigation *)navigation
       withError:(NSError *)error {
-    if(webView == self.wkWebView) {
+    if(self.delegate && [self.delegate respondsToSelector:@selector(JQWebView:didFailToLoadURL:error:)]) {
         //back delegate
         [self.delegate JQWebView:self didFailToLoadURL:self.wkWebView.URL error:error];
     }
@@ -453,7 +328,7 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 
 - (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation
       withError:(NSError *)error {
-    if(webView == self.wkWebView) {
+    if(self.delegate && [self.delegate respondsToSelector:@selector(JQWebView:didFailToLoadURL:error:)]) {
         //back delegate
         [self.delegate JQWebView:self didFailToLoadURL:self.wkWebView.URL error:error];
     }
@@ -473,85 +348,83 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
     
-
-    if(webView == self.wkWebView) {
-        
-        /* WKWebView默认禁止了一些跳转
-         
-         UIWebView
-         打开ituns.apple.com跳转到appStore, 拨打电话, 唤起邮箱等一系列操作UIWebView默认支持的.
-         WKWebView
-         默认禁止了以上行为,除此之外,js端通过alert()`弹窗的动作也被禁掉了.
-         这边做处理*/
-        
-        NSURL *URL = navigationAction.request.URL;
-        
-        NSString *scheme = [URL scheme];
-        UIApplication *app = [UIApplication sharedApplication];
-        // 打电话
-        if ([scheme isEqualToString:@"tel"]) {
-            if ([app canOpenURL:URL]) {
-                [app openURL:URL];
-                // 一定要加上这句,否则会打开新页面
-                decisionHandler(WKNavigationActionPolicyCancel);
-                return;
-            }
-        }
-        // 打开appstore
-        if ([URL.absoluteString containsString:@"ituns.apple.com"]) {
-            if ([app canOpenURL:URL]) {
-                [app openURL:URL];
-                decisionHandler(WKNavigationActionPolicyCancel);
-                return;
-            }
-        }
-        if ([self isWirelessDownloadManifestForURL:URL]) {
-            //当前加载链接为苹果企业APP无线安装清单文件，则打开外部浏览器进行展示
+    
+    
+    /* WKWebView默认禁止了一些跳转
+     
+     UIWebView
+     打开ituns.apple.com跳转到appStore, 拨打电话, 唤起邮箱等一系列操作UIWebView默认支持的.
+     WKWebView
+     默认禁止了以上行为,除此之外,js端通过alert()`弹窗的动作也被禁掉了.
+     这边做处理*/
+    
+    NSURL *URL = navigationAction.request.URL;
+    
+    NSString *scheme = [URL scheme];
+    UIApplication *app = [UIApplication sharedApplication];
+    // 打电话
+    if ([scheme isEqualToString:@"tel"]) {
+        if ([app canOpenURL:URL]) {
             [app openURL:URL];
-             decisionHandler(WKNavigationActionPolicyCancel);
-            return;
-        }
-        
-        if(![self externalAppRequiredToOpenURL:URL]) {
-            if(!navigationAction.targetFrame) {
-                [self loadURL:URL];
-                decisionHandler(WKNavigationActionPolicyCancel);
-                return;
-            }
-            BOOL decision = [self callback_webViewShouldStartLoadWithRequest:navigationAction.request navigationType:navigationAction.navigationType];
-            if (decision) {
-                decisionHandler(WKNavigationActionPolicyAllow);
-                return;
-            } else
-            {
-                decisionHandler(WKNavigationActionPolicyCancel);
-                return;
-            }
-            
-        }
-        else if([[UIApplication sharedApplication] canOpenURL:URL]) {
-            [self launchExternalAppWithURL:URL];
+            // 一定要加上这句,否则会打开新页面
             decisionHandler(WKNavigationActionPolicyCancel);
             return;
         }
     }
-    decisionHandler(WKNavigationActionPolicyAllow);
-
-}
-
-- (BOOL)isWirelessDownloadManifestForURL:(NSURL*)url
-{
-//    DLog(@"url.absoluteString = %@ ",url.absoluteString);
-    if (!url.absoluteString) {
-        return NO;
+    // 打开appstore
+    if ([URL.absoluteString containsString:@"ituns.apple.com"]) {
+        if ([app canOpenURL:URL]) {
+            [app openURL:URL];
+            decisionHandler(WKNavigationActionPolicyCancel);
+            return;
+        }
     }
+    //        if ([self isWirelessDownloadManifestForURL:URL]) {
+    //            //当前加载链接为苹果企业APP无线安装清单文件，则打开外部浏览器进行展示
+    //            [app openURL:URL];
+    //             decisionHandler(WKNavigationActionPolicyCancel);
+    //            return;
+    //        }
     
-    NSString *urlString = url.absoluteString;
-    if ([urlString hasPrefix:@"itms-services://?action=download-manifest&url="]) {
-        return YES;
+    if(![self externalAppRequiredToOpenURL:URL]) {
+        if(!navigationAction.targetFrame) {
+            [self loadURL:URL];
+            decisionHandler(WKNavigationActionPolicyCancel);
+            return;
+        }
+        BOOL decision = [self callback_webViewShouldStartLoadWithRequest:navigationAction.request navigationType:navigationAction.navigationType];
+        if (decision) {
+            decisionHandler(WKNavigationActionPolicyAllow);
+            return;
+        } else
+        {
+            decisionHandler(WKNavigationActionPolicyCancel);
+            return;
+        }
+        
     }
-    return NO;
+    else if([[UIApplication sharedApplication] canOpenURL:URL]) {
+        [self launchExternalAppWithURL:URL];
+        decisionHandler(WKNavigationActionPolicyCancel);
+        return;
+    }
+    decisionHandler(WKNavigationActionPolicyAllow);
+    
 }
+//上架appstores时必须删掉这段代码 
+//- (BOOL)isWirelessDownloadManifestForURL:(NSURL*)url
+//{
+////    DLog(@"url.absoluteString = %@ ",url.absoluteString);
+//    if (!url.absoluteString) {
+//        return NO;
+//    }
+//
+//    NSString *urlString = url.absoluteString;
+//    if ([urlString hasPrefix:@"itms-services://?action=download-manifest&url="]) {
+//        return YES;
+//    }
+//    return NO;
+//}
 
 -(BOOL)callback_webViewShouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(NSInteger)navigationType
 {
@@ -562,7 +435,7 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
     {
         return YES;
     }
-
+    
 }
 
 
@@ -602,42 +475,6 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
     }
 }
 
-#pragma mark - Fake Progress Bar Control (UIWebView)
-
-- (void)fakeProgressViewStartLoading {
-    [self.progressView setProgress:0.0f animated:NO];
-    [self.progressView setAlpha:1.0f];
-    
-    if(!self.fakeProgressTimer) {
-        self.fakeProgressTimer = [NSTimer scheduledTimerWithTimeInterval:1.0f/60.0f target:self selector:@selector(fakeProgressTimerDidFire:) userInfo:nil repeats:YES];
-    }
-}
-
-- (void)fakeProgressBarStopLoading {
-    if(self.fakeProgressTimer) {
-        [self.fakeProgressTimer invalidate];
-    }
-    
-    if(self.progressView) {
-        [self.progressView setProgress:1.0f animated:YES];
-        [UIView animateWithDuration:0.3f delay:0.3f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            [self.progressView setAlpha:0.0f];
-        } completion:^(BOOL finished) {
-            [self.progressView setProgress:0.0f animated:NO];
-        }];
-    }
-}
-
-- (void)fakeProgressTimerDidFire:(id)sender {
-    CGFloat increment = 0.005/(self.progressView.progress + 0.2);
-    if([self.uiWebView isLoading]) {
-        CGFloat progress = (self.progressView.progress < 0.75f) ? self.progressView.progress + increment : self.progressView.progress + 0.0005;
-        if(self.progressView.progress < 0.95) {
-            [self.progressView setProgress:progress animated:YES];
-        }
-    }
-}
-
 #pragma mark - External App Support
 - (BOOL)externalAppRequiredToOpenURL:(NSURL *)URL {
     
@@ -671,7 +508,7 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 #pragma mark -获取当前屏幕显示的viewcontroller
 - (UIViewController *)getCurrentViewController
 {
-
+    
     UIWindow * window = [[UIApplication sharedApplication] keyWindow];
     
     if (window.windowLevel != UIWindowLevelNormal){
@@ -725,11 +562,81 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
     return _scriptMessageHandlers;
 }
 
+/* 清除全部缓存 */
++ (void)deleteAllWebCache
+{
+    if (@available(iOS 9.0, *)) {
+        //allWebsiteDataTypes清除所有缓存
+        NSSet *websiteDataTypes = [WKWebsiteDataStore allWebsiteDataTypes];
+        NSDate *dateFrom = [NSDate dateWithTimeIntervalSince1970:0];
+        [[WKWebsiteDataStore defaultDataStore] removeDataOfTypes:websiteDataTypes modifiedSince:dateFrom completionHandler:^{
+            
+        }];
+    }else
+    {
+        NSString *libraryDir = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+                                                                   NSUserDomainMask, YES)[0];
+        NSString *bundleId  =  [[[NSBundle mainBundle] infoDictionary]
+                                objectForKey:@"CFBundleIdentifier"];
+        NSString *webkitFolderInLib = [NSString stringWithFormat:@"%@/WebKit",libraryDir];
+        NSString *webKitFolderInCaches = [NSString
+                                          stringWithFormat:@"%@/Caches/%@/WebKit",libraryDir,bundleId];
+        NSString *webKitFolderInCachesfs = [NSString
+                                            stringWithFormat:@"%@/Caches/%@/fsCachedData",libraryDir,bundleId];
+        
+        NSError *error;
+        /* iOS8.0 WebView Cache的存放路径 */
+        [[NSFileManager defaultManager] removeItemAtPath:webKitFolderInCaches error:&error];
+        [[NSFileManager defaultManager] removeItemAtPath:webkitFolderInLib error:nil];
+        
+        /* iOS7.0 WebView Cache的存放路径 */
+        [[NSFileManager defaultManager] removeItemAtPath:webKitFolderInCachesfs error:&error];
+    }
+    
+}
+
+/* 自定义清除缓存 */
++ (void)deleteWebCacheOfWebsiteDataTypes:(NSArray *)types completionHandler:(void (^)(void))completionHandler {
+    /*
+     在磁盘缓存上。
+     WKWebsiteDataTypeDiskCache,
+     
+     html离线Web应用程序缓存。
+     WKWebsiteDataTypeOfflineWebApplicationCache,
+     
+     内存缓存。
+     WKWebsiteDataTypeMemoryCache,
+     
+     本地存储。
+     WKWebsiteDataTypeLocalStorage,
+     
+     Cookies
+     WKWebsiteDataTypeCookies,
+     
+     会话存储
+     WKWebsiteDataTypeSessionStorage,
+     
+     IndexedDB数据库。
+     WKWebsiteDataTypeIndexedDBDatabases,
+     
+     查询数据库。
+     WKWebsiteDataTypeWebSQLDatabases
+     */
+    
+    NSSet *websiteDataTypes = [NSSet setWithArray:types];
+    NSDate *dateFrom = [NSDate dateWithTimeIntervalSince1970:0];
+    
+    if (@available(iOS 9.0, *)) {
+        [[WKWebsiteDataStore defaultDataStore] removeDataOfTypes:websiteDataTypes modifiedSince:dateFrom completionHandler:completionHandler];
+    }
+    
+}
+
+
 #pragma mark - Dealloc
 
 - (void)dealloc {
     NSLog(@"JQWebView dealloc");
-    [self.uiWebView setDelegate:nil];
     [self.wkWebView setNavigationDelegate:nil];
     [self.wkWebView setUIDelegate:nil];
     [self.wkWebView removeObserver:self forKeyPath:NSStringFromSelector(@selector(estimatedProgress))];
@@ -741,6 +648,7 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
     }];
     [self.scriptMessageHandlers removeAllObjects];
     self.scriptMessageHandlers = nil;
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     
 }
 

@@ -87,7 +87,7 @@
     
     if (self.urlString)
     {   //开始加载网页链接
-        [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:self.urlString]]];
+        [self loadRequest:self.urlString];
         
     }else if (self.htmlString)
     {
@@ -130,7 +130,9 @@
 {
     [super viewWillAppear:animated];
     if (!self.webView.wkWebView.isLoading) {
-        [self.webView reload];
+        if (self.urlString) {
+            [self.webView reload];
+        }
     }
 }
 
