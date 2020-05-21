@@ -21,7 +21,7 @@
 
 
 typedef void(^ScriptMessageHandler)(id data);
-@interface JQWebView : UIView<WKNavigationDelegate, WKUIDelegate, UIWebViewDelegate>
+@interface JQWebView : UIView<WKNavigationDelegate, WKUIDelegate>
 
 
 #pragma mark - Public Properties
@@ -37,8 +37,6 @@ typedef void(^ScriptMessageHandler)(id data);
 // The web views
 // Depending on the version of iOS, one of these will be set
 @property (nonatomic, strong) WKWebView *wkWebView;
-//@property (nonatomic, strong) UIWebView *uiWebView;
-
 
 @property (nonatomic, assign) BOOL scrollEnabled;
 

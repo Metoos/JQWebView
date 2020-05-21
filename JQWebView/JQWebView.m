@@ -19,8 +19,6 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
     BOOL keyboardWillShow;
 }
 @property (nonatomic, strong) NSTimer *fakeProgressTimer;
-@property (nonatomic, assign) BOOL uiWebViewIsLoading;
-@property (nonatomic, strong) NSURL *uiWebViewCurrentURL;
 @property (nonatomic, strong) NSURL *URLToLaunchWithPermission;
 @property (nonatomic, strong) UIAlertView *externalAppPermissionAlertView;
 
@@ -67,7 +65,47 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
         //ProcessPool改成单例可实现多webview缓存同步
         config.processPool = [JQWebView singleWkProcessPool];
         
-        self.wkWebView = [[WKWebView alloc] initWithFrame:frame configuration:config];
+        /*
+        //禁止长按弹出 UIMenuController 相关
+        
+        //禁止选择 css 配置相关
+        
+        NSString*css = @"body{-webkit-user-select:none;-webkit-user-drag:none;}";
+        
+        //css 选中样式取消
+        
+        NSMutableString *javascript = [NSMutableString string];
+        
+        [javascript appendString:@"var style = document.createElement('style');"];
+        
+        [javascript appendString:@"style.type = 'text/css';"];
+        
+        [javascript appendFormat:@"var cssContent = document.createTextNode('%@');", css];
+        
+        [javascript appendString:@"style.appendChild(cssContent);"];
+        
+        [javascript appendString:@"document.body.appendChild(style);"];
+        
+        [javascript appendString:@"document.documentElement.style.webkitUserSelect='none';"];//禁止选择
+        
+        [javascript appendString:@"document.documentElement.style.webkitTouchCallout='none';"];//禁止长按
+        
+        //javascript 注入
+        
+        WKUserScript *noneSelectScript = [[WKUserScript alloc] initWithSource:javascript
+                                          
+                                                                injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+                                          
+                                                             forMainFrameOnly:YES];
+        
+        WKUserContentController*userContentController = [[WKUserContentController alloc] init];
+        
+        [userContentController addUserScript:noneSelectScript];
+        
+        config.userContentController = userContentController;
+        
+        */
+        self.wkWebView = [[WKWebView alloc] initWithFrame:self.bounds configuration:config];
         
     
         self.backgroundColor = [UIColor colorWithRed:240.0f/255.0f green:245.0/255.0 blue:245.0/255.0 alpha:1];
@@ -249,10 +287,7 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
 
 
 /* WKWebView默认禁止了一些跳转
- 
- UIWebView
- 打开ituns.apple.com跳转到appStore, 拨打电话, 唤起邮箱等一系列操作UIWebView默认支持的.
- WKWebView
+
  默认禁止了以上行为,除此之外,js端通过alert()`弹窗的动作也被禁掉了.
  这边做处理*/
 
@@ -352,8 +387,6 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
     
     /* WKWebView默认禁止了一些跳转
      
-     UIWebView
-     打开ituns.apple.com跳转到appStore, 拨打电话, 唤起邮箱等一系列操作UIWebView默认支持的.
      WKWebView
      默认禁止了以上行为,除此之外,js端通过alert()`弹窗的动作也被禁掉了.
      这边做处理*/
@@ -379,12 +412,6 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
             return;
         }
     }
-    //        if ([self isWirelessDownloadManifestForURL:URL]) {
-    //            //当前加载链接为苹果企业APP无线安装清单文件，则打开外部浏览器进行展示
-    //            [app openURL:URL];
-    //             decisionHandler(WKNavigationActionPolicyCancel);
-    //            return;
-    //        }
     
     if(![self externalAppRequiredToOpenURL:URL]) {
         if(!navigationAction.targetFrame) {
@@ -411,20 +438,6 @@ static void *JQWebBrowserContext = &JQWebBrowserContext;
     decisionHandler(WKNavigationActionPolicyAllow);
     
 }
-//上架appstores时必须删掉这段代码 
-//- (BOOL)isWirelessDownloadManifestForURL:(NSURL*)url
-//{
-////    DLog(@"url.absoluteString = %@ ",url.absoluteString);
-//    if (!url.absoluteString) {
-//        return NO;
-//    }
-//
-//    NSString *urlString = url.absoluteString;
-//    if ([urlString hasPrefix:@"itms-services://?action=download-manifest&url="]) {
-//        return YES;
-//    }
-//    return NO;
-//}
 
 -(BOOL)callback_webViewShouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(NSInteger)navigationType
 {

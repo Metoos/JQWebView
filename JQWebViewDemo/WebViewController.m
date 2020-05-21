@@ -209,6 +209,14 @@
 - (BOOL)JQWebView:(JQWebView *)webview shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(NSInteger)navigationType
 {
     NSURL *URL = request.URL;
+    
+    
+    if ([self isWirelessDownloadManifestForURL:URL]) {
+        //当前加载链接为苹果企业APP无线安装清单文件，则打开外部浏览器进行展示
+        [[UIApplication sharedApplication] openURL:URL];
+    }
+    
+    
 //    NSLog(@"urlbaseURL = %@ \n 请求URL = %@",URL.baseURL,URL.absoluteString);
     __block BOOL isreturnNO = NO;
     [self.navigationController.viewControllers enumerateObjectsUsingBlock:^(__kindof UIViewController * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
@@ -225,10 +233,10 @@
     if (isreturnNO) {
         return NO;
     }
-    
+
     
     if (!webview.wkWebView.isLoading) {
-        if (![self.urlString isEqualToString:URL.absoluteString]) {
+        if (![self.urlString isEqualToString:URL.absoluteString] && [self.urlString hasPrefix:@"http"]) {
             
             
             if (navigationType == WKNavigationTypeOther) {
@@ -254,6 +262,23 @@
     }
     return YES;
 }
+
+//TODO: WARNING 上架appstores时必须删掉这段代码
+- (BOOL)isWirelessDownloadManifestForURL:(NSURL*)url
+{
+//    DLog(@"url.absoluteString = %@ ",url.absoluteString);
+    if (!url.absoluteString) {
+        return NO;
+    }
+
+    NSString *urlString = url.absoluteString;
+    if ([urlString hasPrefix:@"itms-services://?action=download-manifest&url="]) {
+        return YES;
+    }
+    return NO;
+}
+
+
 - (void)JQWebViewDidStartLoad:(JQWebView *)webview
 {
     
